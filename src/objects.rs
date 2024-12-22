@@ -1,231 +1,122 @@
-use noise::{NoiseFn, Perlin};
-use rand::Rng;
-use std::{cmp::Ordering, collections::HashMap};
+use std::collections::HashMap;
 
-pub trait Object {
-    fn width() -> u16;
-    fn height() -> u16;
-    fn content() -> &'static str;
-    fn offset() -> u16 {
-        Self::width() / 2 + 3
-    }
+use crate::terrain::TerrainManager;
+
+#[derive(Hash, Eq, PartialEq, Clone)]
+pub enum ObjectType {
+    Snowman,
+    Tree,
+    House,
 }
 
-pub struct Snowman {}
-pub struct House {}
-pub struct Tree {}
-pub struct Snowflake {}
-
-pub struct Snowfall {
-    flakes: HashMap<Snowflake, (u16, u16)>,
-    width: u16,
-}
-
-pub struct Hills {
-    perlin: Perlin,
-    width: u16,
-    height: u16,
-    x: u16,
-    content: Vec<String>,
-    frequency: f64,
-    amplitude: f64,
-    offset: f64,
-}
-
-impl Hills {
-    pub fn new(width: u16, height: u16, frequency: f64, amplitude: f64) -> Self {
-        let seed = rand::thread_rng().gen();
-
-        let mut new = Self {
-            perlin: Perlin::new(seed),
-            width,
-            height,
-            x: 0,
-            content: Vec::new(),
-            frequency,
-            amplitude,
-            offset: 0.5,
-        };
-
-        new.update_content();
-        new
-    }
-
-    pub fn update_dimensions(&mut self, width: u16, height: u16) {
-        self.width = width;
-        self.height = height;
-        self.update_content();
-    }
-
-    fn update_content(&mut self) {
-        self.content.clear();
-        self.x = 0;
-
-        for _ in 0..self.width {
-            self.content.push(self.generate_strip());
-            self.x += 1;
-        }
-    }
-
-    fn generate_strip(&self) -> String {
-        let scaled_x = self.x as f64 * self.frequency;
-        let raw_noise = self.perlin.get([scaled_x]);
-        let normalized_noise = (raw_noise + 1.0) / 2.0;
-        let scaled_height =
-            normalized_noise * self.amplitude + (1.0 - self.amplitude) * self.offset;
-        let height = ((self.height as f64 * scaled_height).max(1.0) as u16).min(self.height);
-
-        let mut str = String::with_capacity(height as usize);
-        for _ in 0..height {
-            str.push_str(Snowflake::content());
-        }
-        str
-    }
-
-    pub fn width(&self) -> u16 {
-        self.width
-    }
-
-    pub fn height(&self) -> u16 {
-        self.height
-    }
-
-    pub fn content(&self) -> &Vec<String> {
-        &self.content
-    }
-
-    // Helper method to get height at specific x position
-    pub fn height_at(&self, x: u16) -> u16 {
-        if x >= self.width {
-            return 0;
-        }
-        self.content[x as usize].chars().count() as u16
-    }
-}
-
-// Ground implementation remains unchanged
-pub struct Ground {
-    width: u16,
-    height: u16,
-    content: String,
-}
-
-impl Ground {
-    pub fn new(width: u16, height: u16) -> Self {
-        let mut new = Self {
-            width,
-            height,
-            content: String::new(),
-        };
-        new.update_content();
-        new
-    }
-
-    pub fn update_dimensions(&mut self, width: u16, height: u16) {
-        self.width = width;
-        self.height = height;
-        self.update_content();
-    }
-
-    fn update_content(&mut self) {
-        let flake_count = (self.width * self.height) as usize;
-        let content_len = self.content.chars().count();
-
-        match content_len.cmp(&flake_count) {
-            Ordering::Greater => {
-                self.content.truncate(flake_count);
-            }
-            Ordering::Less => {
-                for _ in 0..(flake_count - content_len) {
-                    self.content.push_str(Snowflake::content());
-                }
-            }
-            Ordering::Equal => {}
+impl ObjectType {
+    pub fn content(&self) -> Vec<&str> {
+        match self {
+            ObjectType::Snowman => SNOWMAN_SPRITE.to_vec(),
+            ObjectType::Tree => TREE_SPRITE.to_vec(),
+            ObjectType::House => HOUSE_SPRITE.to_vec(),
         }
     }
 
     pub fn width(&self) -> u16 {
-        self.width
+        match self {
+            ObjectType::Snowman => 9,
+            ObjectType::Tree => 24,
+            ObjectType::House => 14,
+        }
     }
 
     pub fn height(&self) -> u16 {
-        self.height
-    }
-
-    pub fn content(&self) -> &String {
-        &self.content
-    }
-}
-
-// Original Object implementations remain unchanged
-impl Object for Snowflake {
-    fn width() -> u16 {
-        1
-    }
-    fn height() -> u16 {
-        1
-    }
-    fn content() -> &'static str {
-        let num: u32 = rand::thread_rng().gen_range(0..3);
-        match num {
-            0 => ".",
-            1 => "+",
-            _ => "*",
+        match self {
+            ObjectType::Snowman => 4,
+            ObjectType::Tree => 11,
+            ObjectType::House => 7,
         }
     }
-}
 
-impl Object for Snowman {
-    fn width() -> u16 {
-        9
-    }
-    fn height() -> u16 {
-        4
-    }
-    fn content() -> &'static str {
-        r#"  _==_ _
-_,(",)|_|
- \/. \-|
- ( :  )|"#
+    pub fn offset(&self) -> u16 {
+        self.width() / 2
     }
 }
 
-impl Object for House {
-    fn width() -> u16 {
-        14
+pub struct ObjectManager {
+    positions: HashMap<ObjectType, (u16, u16)>,
+    initialized: bool,
+}
+
+impl ObjectManager {
+    pub fn new() -> Self {
+        Self {
+            positions: HashMap::new(),
+            initialized: false,
+        }
     }
-    fn height() -> u16 {
-        7
+
+    pub fn reset(&mut self) {
+        self.initialized = false;
+        self.positions.clear();
     }
-    fn content() -> &'static str {
-        r#"       `'::.
-  _________H
- /\     _   \
-/  \___/^\___\
-|  | []   [] |
-|  |   .-.   |
-@._|@@_|||_@@|"#
+
+    pub fn place_objects(&mut self, terrain: &TerrainManager) {
+        if self.initialized {
+            return;
+        }
+
+        let (lowest_x, lowest_h) = terrain.get_lowest_point();
+        let snowman_pos = lowest_x - ObjectType::Snowman.offset();
+        let snowman_y = terrain.screen_height()
+            - terrain.ground_height()
+            - lowest_h
+            - ObjectType::Snowman.height()
+            + 2;
+        self.positions
+            .insert(ObjectType::Snowman, (snowman_pos, snowman_y));
+
+        let (highest_x, highest_h) = terrain.get_highest_point();
+        let tree_pos = highest_x - ObjectType::Tree.offset();
+        let tree_y = terrain.screen_height()
+            - terrain.ground_height()
+            - highest_h
+            - ObjectType::Tree.height()
+            + 2;
+        self.positions.insert(ObjectType::Tree, (tree_pos, tree_y));
+
+        self.initialized = true;
+    }
+
+    pub fn get_positions(&self) -> &HashMap<ObjectType, (u16, u16)> {
+        &self.positions
     }
 }
 
-impl Object for Tree {
-    fn width() -> u16 {
-        29
-    }
-    fn height() -> u16 {
-        11
-    }
-    fn content() -> &'static str {
-        r#"        \/ |    |/
-      \/ / \||/  /_/___/_
-       \/   |/ \/
-  _\__\_\   |  /_____/_
-         \  | /          /
-__ _-----`  |{,-----------~
-          \ }{
-           }{{
-           }}{
-           {{}
-        ,=~{}{-_"#
-    }
-}
+#[rustfmt::skip]
+const SNOWMAN_SPRITE: [&str; 4] = [
+    r#"  _==_ _"#,
+    r#"_,(",)|_|"#,
+    r#" \/. \-|"#,
+    r#" ( :  )|"#
+];
+
+const TREE_SPRITE: [&str; 11] = [
+    r#"        \/ |    |/"#,
+    r#"      \/ / \||/  /_/___/_"#,
+    r#"       \/   |/ \/"#,
+    r#"  _\__\_\   |  /_____/_"#,
+    r#"         \  | /          /"#,
+    r#"__ _-----`  |{,-----------~"#,
+    r#"          \ }{"#,
+    r#"           }{{"#,
+    r#"           }}{"#,
+    r#"           {{}"#,
+    r#"        ,=~{}{-_"#,
+];
+
+const HOUSE_SPRITE: [&str; 7] = [
+    r#"       `'::."#,
+    r#"  _________H"#,
+    r#" /\     _   \"#,
+    r#"/  \___/^\___\"#,
+    r#"|  | []   [] |"#,
+    r#"|  |   .-.   |"#,
+    r#"@._|@@_|||_@@|"#,
+];
