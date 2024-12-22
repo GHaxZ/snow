@@ -65,7 +65,6 @@ impl App {
     fn handle_resize(&mut self, width: u16, height: u16) -> Result<()> {
         self.renderer.update_dimensions(width, height);
         self.terrain_manager.update_dimensions(width, height);
-        self.object_manager.update_height(&self.terrain_manager);
         self.renderer
             .draw_scene(&self.terrain_manager, &self.object_manager)
     }
