@@ -44,7 +44,8 @@ impl App {
         let (width, height) = self.renderer.dimensions();
         self.terrain_manager.regenerate(width, height);
         self.object_manager.reset();
-        self.object_manager.place_objects(&self.terrain_manager);
+        self.object_manager
+            .place_objects(&self.terrain_manager, &self.renderer);
         self.renderer
             .draw_scene(&self.terrain_manager, &self.object_manager)
     }

@@ -19,8 +19,8 @@ impl TerrainManager {
         (screen_height as f32 * 0.3) as u16
     }
 
-    pub fn screen_height(&self) -> u16 {
-        self.ground.height() * 10 / 3
+    pub fn height(&self) -> u16 {
+        self.ground.height() + self.hills.height()
     }
 
     pub fn regenerate(&mut self, width: u16, height: u16) {

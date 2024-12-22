@@ -71,8 +71,8 @@ impl Renderer {
         for (obj_type, (x, y)) in objects.get_positions() {
             let content = obj_type.content();
 
-            for (i, line) in content.lines().enumerate() {
-                let current_y = *y + i as u16;
+            for (i, line) in content.lines().rev().enumerate() {
+                let current_y = *y - i as u16;
 
                 if current_y >= self.height {
                     continue;
@@ -97,6 +97,7 @@ impl Renderer {
                 io::stdout().flush()?;
             }
         }
+
         Ok(())
     }
 

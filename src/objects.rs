@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::terrain::TerrainManager;
+use crate::{renderer::Renderer, terrain::TerrainManager};
 
 #[derive(Hash, Eq, PartialEq, Clone)]
 pub enum ObjectType {
@@ -57,28 +57,22 @@ impl ObjectManager {
         self.positions.clear();
     }
 
-    pub fn place_objects(&mut self, terrain: &TerrainManager) {
+    pub fn place_objects(&mut self, terrain: &TerrainManager, renderer: &Renderer) {
         if self.initialized {
             return;
         }
 
+        let (width, height) = renderer.dimensions();
+
         let (lowest_x, lowest_h) = terrain.get_lowest_point();
         let snowman_pos = lowest_x - ObjectType::Snowman.offset();
-        let snowman_y = terrain.screen_height()
-            - terrain.ground_height()
-            - lowest_h
-            - ObjectType::Snowman.height()
-            + 2;
+        let snowman_y = height - terrain.ground_height() - lowest_h;
         self.positions
             .insert(ObjectType::Snowman, (snowman_pos, snowman_y));
 
         let (highest_x, highest_h) = terrain.get_highest_point();
         let tree_pos = highest_x - ObjectType::Tree.offset();
-        let tree_y = terrain.screen_height()
-            - terrain.ground_height()
-            - highest_h
-            - ObjectType::Tree.height()
-            + 2;
+        let tree_y = height - terrain.ground_height() - highest_h;
         self.positions.insert(ObjectType::Tree, (tree_pos, tree_y));
 
         self.initialized = true;
