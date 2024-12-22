@@ -10,11 +10,11 @@ pub enum ObjectType {
 }
 
 impl ObjectType {
-    pub fn content(&self) -> Vec<&str> {
+    pub fn content(&self) -> &str {
         match self {
-            ObjectType::Snowman => SNOWMAN_SPRITE.to_vec(),
-            ObjectType::Tree => TREE_SPRITE.to_vec(),
-            ObjectType::House => HOUSE_SPRITE.to_vec(),
+            ObjectType::Snowman => SNOWMAN_SPRITE,
+            ObjectType::Tree => TREE_SPRITE,
+            ObjectType::House => HOUSE_SPRITE,
         }
     }
 
@@ -90,33 +90,27 @@ impl ObjectManager {
 }
 
 #[rustfmt::skip]
-const SNOWMAN_SPRITE: [&str; 4] = [
-    r#"  _==_ _"#,
-    r#"_,(",)|_|"#,
-    r#" \/. \-|"#,
-    r#" ( :  )|"#
-];
+const SNOWMAN_SPRITE: &str = r#"  _==_ _
+_,(",)|_|
+ \/. \-|
+ ( :  )|"#;
 
-const TREE_SPRITE: [&str; 11] = [
-    r#"        \/ |    |/"#,
-    r#"      \/ / \||/  /_/___/_"#,
-    r#"       \/   |/ \/"#,
-    r#"  _\__\_\   |  /_____/_"#,
-    r#"         \  | /          /"#,
-    r#"__ _-----`  |{,-----------~"#,
-    r#"          \ }{"#,
-    r#"           }{{"#,
-    r#"           }}{"#,
-    r#"           {{}"#,
-    r#"        ,=~{}{-_"#,
-];
+const TREE_SPRITE: &str = r#"        \/ |    |/
+      \/ / \||/  /_/___/_
+       \/   |/ \/,
+  _\__\_\   |  /_____/_
+         \  | /          /
+__ _-----`  |{,-----------~
+          \ }{
+           }{{
+           }}{
+           {{}
+        ,=~{}{-_"#;
 
-const HOUSE_SPRITE: [&str; 7] = [
-    r#"       `'::."#,
-    r#"  _________H"#,
-    r#" /\     _   \"#,
-    r#"/  \___/^\___\"#,
-    r#"|  | []   [] |"#,
-    r#"|  |   .-.   |"#,
-    r#"@._|@@_|||_@@|"#,
-];
+const HOUSE_SPRITE: &str = r#"       `'::.
+  _________H
+ /\     _   \
+/  \___/^\___\
+|  | []   [] |
+|  |   .-.   |
+@._|@@_|||_@@|"#;
