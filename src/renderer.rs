@@ -100,27 +100,25 @@ impl Renderer {
             let content = obj_type.content();
 
             for (i, line) in content.lines().rev().enumerate() {
-                // Avoid underflows when subtracting
                 let current_y = y.saturating_sub(i as u16);
 
                 if current_y >= self.height {
-                    break;
+                    continue;
                 }
 
-                let end_x = *x + line.len() as u16;
-                if *x >= self.width {
-                    break;
-                }
+                for (j, ch) in line.chars().enumerate() {
+                    let current_x = x + j as u16;
 
-                let line = if end_x > self.width {
-                    &line[..(self.width - x) as usize]
-                } else {
-                    line
-                };
+                    if ch == '°' {
+                        continue;
+                    }
 
-                if current_y <= self.height {
-                    execute!(io::stdout(), cursor::MoveTo(*x, current_y))?;
-                    write!(io::stdout(), "{}", line)?;
+                    if current_x >= self.width {
+                        break;
+                    }
+
+                    execute!(io::stdout(), cursor::MoveTo(current_x, current_y))?;
+                    write!(io::stdout(), "{}", ch)?;
                 }
             }
         }

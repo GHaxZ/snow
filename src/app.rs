@@ -1,8 +1,12 @@
+//  TODO: Populate newly added snow regions with snowflakes
+//  FIX: Tree clips into floor after resize
+//          Flickering caused by landscape being drawn over snow
+
 use anyhow::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEvent};
 use std::{
     thread,
-    time::{self, Duration, Instant},
+    time::{Duration, Instant},
 };
 
 use crate::{objects::ObjectManager, renderer::Renderer, terrain::TerrainManager};

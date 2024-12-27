@@ -89,7 +89,7 @@ impl TerrainManager {
         Self {
             ground: Ground::new(width, Self::calc_terrain_height(height)),
             hills: Hills::new(width, Self::calc_terrain_height(height), 0.02, 0.6),
-            snowfall: Snowfall::new(width, height, 0.2),
+            snowfall: Snowfall::new(width, height, 0.15),
         }
     }
 
@@ -113,7 +113,7 @@ impl TerrainManager {
         let terrain_height = Self::calc_terrain_height(height);
         self.ground = Ground::new(width, terrain_height);
         self.hills = Hills::new(width, terrain_height, 0.02, 0.6);
-        self.snowfall = Snowfall::new(width, height, 0.2)
+        self.snowfall = Snowfall::new(width, height, 0.15)
     }
 
     pub fn update_dimensions(&mut self, width: u16, height: u16) {
