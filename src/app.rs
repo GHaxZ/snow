@@ -1,6 +1,6 @@
 //  TODO: Populate newly added snow regions with snowflakes
-//  FIX: Tree clips into floor after resize
-//          Flickering caused by landscape being drawn over snow
+//  FIX: Flickering caused by landscape being drawn over snow
+//          Tree clips into floor after resize
 
 use anyhow::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEvent};
@@ -92,18 +92,19 @@ impl App {
     }
 
     fn handle_resize(&mut self, width: u16, height: u16) -> Result<()> {
+        self.renderer.clear()?;
+
         self.renderer.update_dimensions(width, height);
         self.terrain_manager.update_dimensions(width, height);
         self.object_manager
             .update_position(&self.terrain_manager, &self.renderer);
+
         self.redraw()?;
 
         Ok(())
     }
 
     fn redraw(&mut self) -> Result<()> {
-        self.renderer.clear()?;
-
         self.draw_snow()?;
         self.draw_landscape()?;
 

@@ -127,6 +127,8 @@ impl Renderer {
     }
 
     pub fn flush(&self) -> Result<()> {
+        io::stdout().flush()?;
+
         Ok(())
     }
 
