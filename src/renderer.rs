@@ -36,11 +36,39 @@ impl Renderer {
     }
 
     pub fn draw_scene(&self, terrain: &TerrainManager, objects: &ObjectManager) -> Result<()> {
-        execute!(io::stdout(), terminal::Clear(ClearType::All))?;
-
         self.draw_ground(terrain)?;
         self.draw_hills(terrain)?;
         self.draw_objects(objects)?;
+
+        Ok(())
+    }
+
+    pub fn clear_snow(&self, terrain: &TerrainManager) -> Result<()> {
+        for flake in terrain.snowflakes() {
+            let (x, y) = flake.position();
+
+            if x > self.width || y > self.height {
+                continue;
+            }
+
+            execute!(io::stdout(), cursor::MoveTo(x, y))?;
+            write!(io::stdout(), " ")?;
+        }
+
+        Ok(())
+    }
+
+    pub fn draw_snow(&self, terrain: &TerrainManager) -> Result<()> {
+        for flake in terrain.snowflakes() {
+            let (x, y) = flake.position();
+
+            if x > self.width || y > self.height {
+                continue;
+            }
+
+            execute!(io::stdout(), cursor::MoveTo(x, y))?;
+            write!(io::stdout(), "{}", flake.symbol())?;
+        }
 
         Ok(())
     }
@@ -72,15 +100,16 @@ impl Renderer {
             let content = obj_type.content();
 
             for (i, line) in content.lines().rev().enumerate() {
-                let current_y = *y - i as u16;
+                // Avoid underflows when subtracting
+                let current_y = y.saturating_sub(i as u16);
 
                 if current_y >= self.height {
-                    continue;
+                    break;
                 }
 
                 let end_x = *x + line.len() as u16;
                 if *x >= self.width {
-                    continue;
+                    break;
                 }
 
                 let line = if end_x > self.width {
@@ -93,10 +122,18 @@ impl Renderer {
                     execute!(io::stdout(), cursor::MoveTo(*x, current_y))?;
                     write!(io::stdout(), "{}", line)?;
                 }
-
-                io::stdout().flush()?;
             }
         }
+
+        Ok(())
+    }
+
+    pub fn flush(&self) -> Result<()> {
+        Ok(())
+    }
+
+    pub fn clear(&self) -> Result<()> {
+        execute!(io::stdout(), terminal::Clear(ClearType::All))?;
 
         Ok(())
     }

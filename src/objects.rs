@@ -62,7 +62,7 @@ impl ObjectManager {
             return;
         }
 
-        let (width, height) = renderer.dimensions();
+        let (_, height) = renderer.dimensions();
 
         let (lowest_x, lowest_h) = terrain.get_lowest_point();
         let snowman_pos = lowest_x - ObjectType::Snowman.offset();
@@ -76,6 +76,16 @@ impl ObjectManager {
         self.positions.insert(ObjectType::Tree, (tree_pos, tree_y));
 
         self.initialized = true;
+    }
+
+    pub fn update_position(&mut self, terrain: &TerrainManager, renderer: &Renderer) {
+        let (_, screen_height) = renderer.dimensions();
+
+        for (_, (x, y)) in self.positions.iter_mut() {
+            let hill_height = terrain.hills().display_height(*x);
+
+            *y = screen_height - terrain.ground_height() - hill_height;
+        }
     }
 
     pub fn get_positions(&self) -> &HashMap<ObjectType, (u16, u16)> {

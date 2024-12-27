@@ -1,10 +1,14 @@
 use anyhow::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEvent};
-use std::{thread, time::Duration};
+use std::{
+    thread,
+    time::{self, Duration, Instant},
+};
 
 use crate::{objects::ObjectManager, renderer::Renderer, terrain::TerrainManager};
 
 const FPS: u64 = 60;
+const SNOWFALL_DELTA_MS: u128 = 500;
 
 pub struct App {
     running: bool,
@@ -19,8 +23,17 @@ impl App {
         let mut app = Self::init()?;
         app.generate_landscape()?;
 
+        let mut timestamp = Instant::now();
+
         while app.running {
             app.poll_events()?;
+
+            if timestamp.elapsed().as_millis() >= SNOWFALL_DELTA_MS {
+                app.redraw()?;
+
+                timestamp = Instant::now();
+            }
+
             thread::sleep(Duration::from_millis(app.frametime));
         }
 
@@ -42,6 +55,9 @@ impl App {
 
     fn generate_landscape(&mut self) -> Result<()> {
         let (width, height) = self.renderer.dimensions();
+
+        self.renderer.clear()?;
+
         self.terrain_manager.regenerate(width, height);
         self.object_manager.reset();
         self.object_manager
@@ -63,11 +79,40 @@ impl App {
         Ok(())
     }
 
+    fn draw_snow(&mut self) -> Result<()> {
+        self.renderer.clear_snow(&self.terrain_manager)?;
+        self.terrain_manager.update_snow();
+        self.renderer.draw_snow(&self.terrain_manager)?;
+
+        Ok(())
+    }
+
     fn handle_resize(&mut self, width: u16, height: u16) -> Result<()> {
         self.renderer.update_dimensions(width, height);
         self.terrain_manager.update_dimensions(width, height);
+        self.object_manager
+            .update_position(&self.terrain_manager, &self.renderer);
+        self.redraw()?;
+
+        Ok(())
+    }
+
+    fn redraw(&mut self) -> Result<()> {
+        self.renderer.clear()?;
+
+        self.draw_snow()?;
+        self.draw_landscape()?;
+
+        self.renderer.flush()?;
+
+        Ok(())
+    }
+
+    fn draw_landscape(&self) -> Result<()> {
         self.renderer
-            .draw_scene(&self.terrain_manager, &self.object_manager)
+            .draw_scene(&self.terrain_manager, &self.object_manager)?;
+
+        Ok(())
     }
 
     fn handle_key(&mut self, key: KeyEvent) -> Result<()> {
@@ -76,12 +121,14 @@ impl App {
             KeyCode::Char('r') => self.generate_landscape()?,
             _ => {}
         }
+
         Ok(())
     }
 
     fn exit(&mut self) -> Result<()> {
         self.running = false;
         self.renderer.cleanup()?;
+
         Ok(())
     }
 }

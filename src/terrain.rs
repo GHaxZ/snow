@@ -5,6 +5,83 @@ use std::cmp::Ordering;
 pub struct TerrainManager {
     ground: Ground,
     hills: Hills,
+    snowfall: Snowfall,
+}
+
+pub struct Snowflake {
+    symbol: char,
+    x: i32,
+    y: u16,
+}
+
+impl Snowflake {
+    fn new(x: i32, y: u16) -> Self {
+        Self {
+            symbol: random_snowflake(),
+            x,
+            y,
+        }
+    }
+
+    pub fn position(&self) -> (u16, u16) {
+        (self.x as u16, self.y)
+    }
+
+    pub fn symbol(&self) -> char {
+        self.symbol
+    }
+}
+
+struct Snowfall {
+    flakes: Vec<Snowflake>,
+    width: u16,
+    height: u16,
+    flake_density: f32,
+}
+
+impl Snowfall {
+    pub fn new(width: u16, height: u16, flake_density: f32) -> Self {
+        Self {
+            flakes: Vec::new(),
+            width,
+            height,
+            flake_density: flake_density.clamp(0.0, 1.0),
+        }
+    }
+
+    fn random_x() -> i32 {
+        rand::thread_rng().gen_range(-1..2)
+    }
+
+    fn flake_chance(&self) -> bool {
+        let rand = rand::thread_rng().gen_range(0.0..1.0 as f32);
+
+        rand <= self.flake_density
+    }
+
+    fn update_dimensions(&mut self, width: u16, height: u16) {
+        self.width = width;
+        self.height = height;
+    }
+
+    fn update_snowflakes(&mut self) {
+        // Remove all out of bounds snowflakes
+        self.flakes
+            .retain(|f| f.y <= self.height && (0..(self.width + 1) as i32).contains(&f.x));
+
+        // Move all snowflakes
+        for flake in self.flakes.iter_mut() {
+            flake.y += 1;
+            flake.x += Self::random_x()
+        }
+
+        // Spawn new snowflakes
+        for i in 0..self.width {
+            if self.flake_chance() {
+                self.flakes.push(Snowflake::new(i as i32, 0));
+            }
+        }
+    }
 }
 
 impl TerrainManager {
@@ -12,6 +89,7 @@ impl TerrainManager {
         Self {
             ground: Ground::new(width, Self::calc_terrain_height(height)),
             hills: Hills::new(width, Self::calc_terrain_height(height), 0.02, 0.6),
+            snowfall: Snowfall::new(width, height, 0.2),
         }
     }
 
@@ -23,16 +101,30 @@ impl TerrainManager {
         self.ground.height() + self.hills.height()
     }
 
+    pub fn hills(&self) -> &Hills {
+        &self.hills
+    }
+
+    pub fn snowflakes(&self) -> &Vec<Snowflake> {
+        &self.snowfall.flakes
+    }
+
     pub fn regenerate(&mut self, width: u16, height: u16) {
         let terrain_height = Self::calc_terrain_height(height);
         self.ground = Ground::new(width, terrain_height);
         self.hills = Hills::new(width, terrain_height, 0.02, 0.6);
+        self.snowfall = Snowfall::new(width, height, 0.2)
     }
 
     pub fn update_dimensions(&mut self, width: u16, height: u16) {
         let terrain_height = Self::calc_terrain_height(height);
         self.ground.update_dimensions(width, terrain_height);
         self.hills.update_dimensions(width, terrain_height);
+        self.snowfall.update_dimensions(width, height);
+    }
+
+    pub fn update_snow(&mut self) {
+        self.snowfall.update_snowflakes()
     }
 
     pub fn ground_height(&self) -> u16 {
@@ -130,7 +222,7 @@ impl Hills {
 
         let mut str = String::with_capacity(height as usize);
         for _ in 0..height {
-            str.push_str(random_snowflake());
+            str.push(random_snowflake());
         }
         str
     }
@@ -193,7 +285,7 @@ impl Ground {
             }
             Ordering::Less => {
                 for _ in 0..(flake_count - content_len) {
-                    self.content.push_str(random_snowflake());
+                    self.content.push(random_snowflake());
                 }
             }
             Ordering::Equal => {}
@@ -213,11 +305,11 @@ impl Ground {
     }
 }
 
-fn random_snowflake() -> &'static str {
+fn random_snowflake() -> char {
     let num: u32 = rand::thread_rng().gen_range(0..3);
     match num {
-        0 => ".",
-        1 => "+",
-        _ => "*",
+        0 => '.',
+        1 => '+',
+        _ => '*',
     }
 }
