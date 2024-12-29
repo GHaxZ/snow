@@ -148,8 +148,8 @@ impl TerrainManager {
         self.ground.height()
     }
 
-    pub fn ground_content(&self) -> &String {
-        self.ground.content()
+    pub fn ground_content(&self) -> &Vec<String> {
+        &self.ground.content
     }
 
     pub fn hills_content(&self) -> &Vec<String> {
@@ -239,7 +239,7 @@ impl Hills {
 
         let mut str = String::with_capacity(height as usize);
         for _ in 0..height {
-            str.push(random_snowflake());
+            str.push(random_ground_char());
         }
         str
     }
@@ -272,18 +272,18 @@ impl Hills {
 pub struct Ground {
     width: u16,
     height: u16,
-    content: String,
+    content: Vec<String>, // Each row has unique content
 }
 
 impl Ground {
     pub fn new(width: u16, height: u16) -> Self {
-        let mut new = Self {
+        let mut ground = Self {
             width,
             height,
-            content: String::new(),
+            content: Vec::new(),
         };
-        new.update_content();
-        new
+        ground.update_content();
+        ground
     }
 
     pub fn update_dimensions(&mut self, width: u16, height: u16) {
@@ -293,20 +293,9 @@ impl Ground {
     }
 
     fn update_content(&mut self) {
-        let flake_count = (self.width * self.height) as usize;
-        let content_len = self.content.chars().count();
-
-        match content_len.cmp(&flake_count) {
-            Ordering::Greater => {
-                self.content.truncate(flake_count);
-            }
-            Ordering::Less => {
-                for _ in 0..(flake_count - content_len) {
-                    self.content.push(random_snowflake());
-                }
-            }
-            Ordering::Equal => {}
-        }
+        self.content = (0..self.height)
+            .map(|_| (0..self.width).map(|_| random_ground_char()).collect())
+            .collect();
     }
 
     pub fn width(&self) -> u16 {
@@ -316,13 +305,18 @@ impl Ground {
     pub fn height(&self) -> u16 {
         self.height
     }
-
-    pub fn content(&self) -> &String {
-        &self.content
-    }
 }
 
 fn random_snowflake() -> char {
+    let num: u32 = rand::thread_rng().gen_range(0..3);
+    match num {
+        0 => '.',
+        1 => '+',
+        _ => '*',
+    }
+}
+
+fn random_ground_char() -> char {
     let num: u32 = rand::thread_rng().gen_range(0..3);
     match num {
         0 => '.',

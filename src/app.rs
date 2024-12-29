@@ -1,5 +1,4 @@
-//  FIX: Flickering caused by landscape being drawn over snow
-//          Tree clips into floor after resize
+//  FIX: Tree clips into floor after resize (probably a rounding error)
 
 use anyhow::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEvent};
@@ -59,8 +58,6 @@ impl App {
     fn generate_landscape(&mut self) -> Result<()> {
         let (width, height) = self.renderer.dimensions();
 
-        self.renderer.clear()?;
-
         self.terrain_manager.regenerate(width, height);
         self.object_manager.reset();
         self.object_manager
@@ -82,17 +79,7 @@ impl App {
         Ok(())
     }
 
-    fn draw_snow(&mut self) -> Result<()> {
-        self.renderer.clear_snow(&self.terrain_manager)?;
-        self.terrain_manager.update_snow();
-        self.renderer.draw_snow(&self.terrain_manager)?;
-
-        Ok(())
-    }
-
     fn handle_resize(&mut self, width: u16, height: u16) -> Result<()> {
-        self.renderer.clear()?;
-
         self.renderer.update_dimensions(width, height);
         self.terrain_manager.update_dimensions(width, height);
         self.object_manager
@@ -104,15 +91,7 @@ impl App {
     }
 
     fn redraw(&mut self) -> Result<()> {
-        self.draw_snow()?;
-        self.draw_landscape()?;
-
-        self.renderer.flush()?;
-
-        Ok(())
-    }
-
-    fn draw_landscape(&self) -> Result<()> {
+        self.terrain_manager.update_snow();
         self.renderer
             .draw_scene(&self.terrain_manager, &self.object_manager)?;
 
