@@ -4,7 +4,7 @@
 
 ![demo.gif](https://raw.githubusercontent.com/GHaxZ/snow/refs/heads/master/.github/demo.gif)
 
-"**snow**" is a **randomly generated winter landscape screensaver**, which makes it possible for you to enjoy snowy landscapes, even when there's no sign of snow outside (or you don't like leaving your house)!
+"**snow**" is a **randomly generated winter landscape screensaver**, which makes it possible for you to enjoy snowy landscapes, even when there's no sign of snow outside! (or if you don't like leaving your house)
 
 ## Installation
 
@@ -13,7 +13,7 @@ Head to the [releases](https://github.com/GHaxZ/snow/releases) page and search f
 You are presented with multiple ways to install snow:
 
 - **Shell script**
-  - Useable on Linux and macOS
+  - Usable on Linux and macOS
   - No extra software required
   - No automatic updates
 - **Powershell script**
@@ -33,7 +33,7 @@ cargo install --git https://github.com/GHaxZ/snow.git
 
 ## Usage
 
-To launch snow simply run the `snow` command:
+To launch snow, simply run the snow command:
 
 ```bash
 snow
@@ -41,8 +41,10 @@ snow
 
 Once snow is running, you can use the following hotkeys:
 
-- "r" to regenerate the landscape
-- "q" to quit
+- "r" - to regenerate the landscape
+- "q" - to quit
+
+That's all there is to it; it's quite simple, really.
 
 ## Contributing
 
@@ -54,7 +56,7 @@ Thanks!
 
 ## Feedback
 
-In case you encounter any **issues** or have a **feature you want to see**, please [open a github issue](https://github.com/GHaxZ/snow/issues/new). I'll do my best to fix things!
+In case you encounter any **issues** or have a **feature you want to see**, please [open a GitHub issue](https://github.com/GHaxZ/snow/issues/new). I'll do my best to fix things!
 
 ## License
 
