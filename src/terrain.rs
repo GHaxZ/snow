@@ -60,6 +60,23 @@ impl Snowfall {
     }
 
     fn update_dimensions(&mut self, width: u16, height: u16) {
+        if width > self.width {
+            let wdiff = width - self.width;
+
+            let until = match self.flakes.iter().max_by_key(|s| s.y) {
+                Some(s) => s.y,
+                None => 0,
+            };
+
+            for y in 0..until + 1 {
+                for x in wdiff..width + 1 {
+                    if self.flake_chance() {
+                        self.flakes.push(Snowflake::new(x as i32, y))
+                    }
+                }
+            }
+        }
+
         self.width = width;
         self.height = height;
     }

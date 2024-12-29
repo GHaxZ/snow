@@ -1,4 +1,3 @@
-//  TODO: Populate newly added snow regions with snowflakes
 //  FIX: Flickering caused by landscape being drawn over snow
 //          Tree clips into floor after resize
 
