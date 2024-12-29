@@ -2,9 +2,36 @@
 name = "snow"
 version = "0.1.0"
 edition = "2021"
+homepage = "https://github.com/GHaxZ/snow/"
+description = "A winter landscape in your terminal"
+repository = "https://github.com/GHaxZ/snow/"
 
 [dependencies]
 anyhow = "1.0.94"
 crossterm = "0.28.1"
 noise = "0.9.0"
 rand = "0.8.5"
+
+# The profile that 'cargo dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
+
+# Config for 'cargo dist'
+[workspace.metadata.dist]
+# The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
+cargo-dist-version = "0.22.1"
+# CI backends to support
+ci = "github"
+# The installers to generate for each app
+installers = ["shell", "powershell", "homebrew"]
+# A GitHub repo to push Homebrew formulas to
+tap = "GHaxZ/homebrew-tap"
+# Target platforms to build apps for (Rust target-triple syntax)
+targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc"]
+# Path that installers should place binaries in
+install-path = "CARGO_HOME"
+# Publish jobs to run in CI
+publish-jobs = ["homebrew"]
+# Whether to install an updater program
+install-updater = false
