@@ -1,6 +1,5 @@
 use noise::{NoiseFn, Perlin};
 use rand::Rng;
-use std::cmp::Ordering;
 
 pub struct TerrainManager {
     ground: Ground,
@@ -54,7 +53,7 @@ impl Snowfall {
     }
 
     fn flake_chance(&self) -> bool {
-        let rand = rand::thread_rng().gen_range(0.0..1.0 as f32);
+        let rand = rand::thread_rng().gen_range(0.0..1.0_f32);
 
         rand <= self.flake_density
     }
@@ -112,10 +111,6 @@ impl TerrainManager {
 
     fn calc_terrain_height(screen_height: u16) -> u16 {
         (screen_height as f32 * 0.3) as u16
-    }
-
-    pub fn height(&self) -> u16 {
-        self.ground.height() + self.hills.height()
     }
 
     pub fn hills(&self) -> &Hills {
@@ -248,10 +243,6 @@ impl Hills {
         self.width
     }
 
-    pub fn height(&self) -> u16 {
-        self.height
-    }
-
     pub fn content(&self) -> &Vec<String> {
         &self.content
     }
@@ -272,7 +263,7 @@ impl Hills {
 pub struct Ground {
     width: u16,
     height: u16,
-    content: Vec<String>, // Each row has unique content
+    content: Vec<String>,
 }
 
 impl Ground {
@@ -296,10 +287,6 @@ impl Ground {
         self.content = (0..self.height)
             .map(|_| (0..self.width).map(|_| random_ground_char()).collect())
             .collect();
-    }
-
-    pub fn width(&self) -> u16 {
-        self.width
     }
 
     pub fn height(&self) -> u16 {

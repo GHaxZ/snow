@@ -6,6 +6,7 @@ use crate::{renderer::Renderer, terrain::TerrainManager};
 pub enum ObjectType {
     Snowman,
     Tree,
+    #[allow(dead_code)]
     House,
 }
 
@@ -26,6 +27,7 @@ impl ObjectType {
         }
     }
 
+    #[allow(dead_code)]
     pub fn height(&self) -> u16 {
         match self {
             ObjectType::Snowman => 4,
